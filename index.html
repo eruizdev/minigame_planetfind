@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adivina el Planeta</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 2.5rem; text-shadow: 0 0 20px rgba(100,150,255,0.5); }
+        .container { max-width: 800px; margin: 0 auto; }
+        input {
+            display: block;
+            margin: 0 auto 16px;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 30px;
+            color: white;
+            outline: none;
+            width: 100%;
+        }
+        input::placeholder { color: rgba(255,255,255,0.5); }
+        button {
+            display: block;
+            margin: 0 auto 20px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #4a90d9 0%, #6b5bdf 100%);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover { opacity: 0.9; }
+        .planet-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 10px;
+        }
+        .planet-name { font-size: 1.8rem; margin-bottom: 15px; color: #7eb8ff; }
+        .planet-info { display: grid; gap: 10px; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .info-label { color: rgba(255,255,255,0.7); }
+        .info-value { font-weight: bold; }
+        .msg { text-align: center; font-size: 1.2rem; margin: 16px 0; }
+        .msg.error { color: #f87171; }
+        .msg.ok { color: #34d399; }
+        .intentos { text-align: center; color: rgba(255,255,255,0.5); margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🪐 Adivina el Planeta</h1>
+        <input type="text" id="apiToken" placeholder="303780c1-5c7e-4c9c-8a47-01503603c586">
+        <button onclick="nuevaPartida()">Nuevo Planeta</button>
+
+        <div id="juego" style="display:none;">
+            <p class="intentos" id="intentos">Intentos: 0</p>
+            <input type="text" id="guess" placeholder="Escribe el nombre del planeta..." onkeydown="if(event.key==='Enter') adivinar()">
+            <div class="msg" id="msg"></div>
+            <div id="resultado"></div>
+        </div>
+    </div>
+
+    <script>
+        let planetaSecreto = null;
+        let intentos = 0;
+
+        async function nuevaPartida() {
+            const token = document.getElementById("apiToken").value.trim();
+            const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+
+            document.getElementById("juego").style.display = "none";
+            document.getElementById("msg").textContent = "";
+            document.getElementById("resultado").innerHTML = "";
+
+            try {
+                const resp = await fetch("https://corsproxy.io/?https://api.le-systeme-solaire.net/rest/bodies/", { headers });
+                const data = await resp.json();
+                const planetas = data.bodies.filter(b => b.isPlanet);
+                planetaSecreto = planetas[Math.floor(Math.random() * planetas.length)];
+                intentos = 0;
+                document.getElementById("intentos").textContent = "Intentos: 0";
+                document.getElementById("guess").value = "";
+                document.getElementById("guess").disabled = false;
+                document.getElementById("juego").style.display = "block";
+                document.getElementById("guess").focus();
+            } catch(e) {
+                alert("Error al conectar con la API");
+            }
+        }
+
+        function adivinar() {
+            if (!planetaSecreto) return;
+            const guess = document.getElementById("guess").value.trim().toLowerCase();
+            if (!guess) return;
+
+            intentos++;
+            document.getElementById("intentos").textContent = "Intentos: " + intentos;
+
+            const nombre = planetaSecreto.englishName.toLowerCase();
+
+            if (nombre.includes(guess) || guess.includes(nombre)) {
+                // Ganó
+                document.getElementById("msg").className = "msg ok";
+                document.getElementById("msg").textContent = " Esa es mijito, si es " + planetaSecreto.englishName + " en " + intentos + " intento(s).";
+                document.getElementById("guess").disabled = true;
+                mostrarInfo();
+            } else {
+                document.getElementById("msg").className = "msg error";
+                document.getElementById("msg").textContent = "No manito, siga jugando...";
+                document.getElementById("guess").value = "";
+            }
+        }
+
+        function mostrarInfo() {
+            const p = planetaSecreto;
+            document.getElementById("resultado").innerHTML = `
+                <div class="planet-card">
+                    <h2 class="planet-name">${p.englishName}</h2>
+                    <div class="planet-info">
+                        <div class="info-row"><span class="info-label">Tipo</span><span class="info-value">${p.bodyType || 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Eje Semi-Mayor</span><span class="info-value">${p.semimajorAxis ? p.semimajorAxis.toLocaleString() + ' km' : 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Período Orbital</span><span class="info-value">${p.sideralOrbit ? p.sideralOrbit + ' días' : 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Rotación Sideral</span><span class="info-value">${p.sideralRotation ? p.sideralRotation + ' horas' : 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Masa</span><span class="info-value">${p.mass ? p.mass.massValue + ' ×10²² kg' : 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Densidad</span><span class="info-value">${p.density ? p.density + ' g/cm³' : 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Gravedad</span><span class="info-value">${p.gravity ? p.gravity + ' m/s²' : 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Temperatura</span><span class="info-value">${p.avgTemp ? p.avgTemp + ' K' : 'N/A'}</span></div>
+                        <div class="info-row"><span class="info-label">Lunas</span><span class="info-value">${p.moons ? p.moons.length : 0}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
