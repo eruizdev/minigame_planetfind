@@ -13,46 +13,51 @@
             padding: 20px;
             color: #fff;
         }
-        h1 { text-align: center; margin-bottom: 30px; font-size: 2.5rem; text-shadow: 0 0 20px rgba(100,150,255,0.5); }
-        .container { max-width: 800px; margin: 0 auto; }
-        button {
-            display: block;
-            margin: 0 auto 20px;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            background: linear-gradient(135deg, #4a90d9 0%, #6b5bdf 100%);
-            border: none;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover { opacity: 0.9; }
-        .planet-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            margin-top: 10px;
-        }
-        .planet-name { font-size: 1.8rem; margin-bottom: 15px; color: #7eb8ff; }
-        .planet-info { display: grid; gap: 10px; }
-        .info-row {
+        h1 { text-align: center; margin-bottom: 10px; font-size: 2.5rem; text-shadow: 0 0 20px rgba(100,150,255,0.5); }
+        .container { max-width: 600px; margin: 0 auto; }
+
+        /* Planeta visual */
+        #planeta-visual {
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            justify-content: center;
+            margin: 20px 0;
         }
-        .info-label { color: rgba(255,255,255,0.7); }
-        .info-value { font-weight: bold; }
-        .msg { text-align: center; font-size: 1.2rem; margin: 16px 0; }
-        .msg.error { color: #f87171; }
-        .msg.ok { color: #34d399; }
-        .intentos { text-align: center; color: rgba(255,255,255,0.5); margin-bottom: 10px; }
+        .planeta-bola {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            box-shadow: inset -20px -10px 40px rgba(0,0,0,0.5), 0 0 40px rgba(255,255,255,0.1);
+        }
+
+        /* Pistas */
+        #pistas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .pista {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+        .pista.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .pista-label { color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-bottom: 3px; }
+        .pista-valor { font-weight: bold; font-size: 1.1rem; }
+
+        /* Input */
         input[type="text"] {
             display: block;
-            margin: 0 auto 16px;
-            padding: 15px 25px;
+            margin: 0 auto 12px;
+            padding: 14px 25px;
             font-size: 1.1rem;
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.3);
@@ -61,49 +66,189 @@
             outline: none;
             width: 100%;
         }
-        input::placeholder { color: rgba(255,255,255,0.5); }
+        input::placeholder { color: rgba(255,255,255,0.4); }
+
+        /* Botones */
+        .btns { display: flex; gap: 10px; justify-content: center; }
+        button {
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #4a90d9 0%, #6b5bdf 100%);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover { opacity: 0.85; }
+        button.secundario {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .msg { text-align: center; font-size: 1.3rem; font-weight: bold; margin: 14px 0; min-height: 30px; }
+        .msg.error { color: #f87171; }
+        .msg.ok { color: #34d399; }
+        .intentos { text-align: center; color: rgba(255,255,255,0.4); margin-bottom: 14px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🪐 Adivina el Planeta</h1>
-        <button onclick="nuevaPartida()">Nuevo Planeta</button>
+
+        <div id="planeta-visual">
+            <div class="planeta-bola" id="bola"></div>
+        </div>
+
+        <div id="pistas-container"></div>
 
         <div id="juego" style="display:none;">
-            <p class="intentos" id="intentos">Intentos: 0</p>
-            <input type="text" id="guess" placeholder="Escribe el nombre del planeta..." onkeydown="if(event.key==='Enter') adivinar()">
+            <p class="intentos" id="intentos">Pista 1 de 5 — Intentos: 0</p>
+            <input type="text" id="guess" placeholder="¿Qué planeta es?" onkeydown="if(event.key==='Enter') adivinar()">
             <div class="msg" id="msg"></div>
-            <div id="resultado"></div>
+            <div class="btns">
+                <button onclick="adivinar()">Adivinar</button>
+                <button class="secundario" onclick="mostrarSiguientePista()">Otra pista 👀</button>
+                <button class="secundario" onclick="nuevaPartida()">Nuevo 🔄</button>
+            </div>
+        </div>
+
+        <div id="inicio" style="text-align:center; margin-top:20px;">
+            <button onclick="nuevaPartida()">Empezar juego</button>
         </div>
     </div>
 
     <script>
         const planetas = [
-            { englishName: "Mercury", bodyType: "Planet", semimajorAxis: 57909050, sideralOrbit: 87.969, sideralRotation: 1407.6, mass: 3.301, density: 5.427, gravity: 3.7, avgTemp: 340, moons: [] },
-            { englishName: "Venus",   bodyType: "Planet", semimajorAxis: 108208000, sideralOrbit: 224.701, sideralRotation: 5832.5, mass: 48.685, density: 5.243, gravity: 8.87, avgTemp: 737, moons: [] },
-            { englishName: "Earth",   bodyType: "Planet", semimajorAxis: 149598023, sideralOrbit: 365.256, sideralRotation: 23.9, mass: 59.722, density: 5.514, gravity: 9.8, avgTemp: 288, moons: [1] },
-            { englishName: "Mars",    bodyType: "Planet", semimajorAxis: 227936064, sideralOrbit: 686.971, sideralRotation: 24.6, mass: 6.4171, density: 3.933, gravity: 3.72, avgTemp: 210, moons: [1,2] },
-            { englishName: "Jupiter", bodyType: "Planet", semimajorAxis: 778547200, sideralOrbit: 4332.589, sideralRotation: 9.9, mass: 18981.27, density: 1.326, gravity: 24.79, avgTemp: 165, moons: Array(95).fill(0) },
-            { englishName: "Saturn",  bodyType: "Planet", semimajorAxis: 1433449370, sideralOrbit: 10759.22, sideralRotation: 10.7, mass: 5683.19, density: 0.687, gravity: 10.44, avgTemp: 134, moons: Array(146).fill(0) },
-            { englishName: "Uranus",  bodyType: "Planet", semimajorAxis: 2876679082, sideralOrbit: 30688.5, sideralRotation: 17.2, mass: 868.1, density: 1.271, gravity: 8.87, avgTemp: 76, moons: Array(28).fill(0) },
-            { englishName: "Neptune", bodyType: "Planet", semimajorAxis: 4503443661, sideralOrbit: 60182.0, sideralRotation: 16.1, mass: 1024.09, density: 1.638, gravity: 11.15, avgTemp: 72, moons: Array(16).fill(0) }
+            {
+                englishName: "Mercury",
+                color: "#b5b5b5",
+                pistas: [
+                    { label: "Color", valor: "Gris rocoso, sin atmósfera visible" },
+                    { label: "Tamaño", valor: "El más pequeño del sistema solar" },
+                    { label: "Temperatura", valor: "Entre -180°C y 430°C (extremos brutales)" },
+                    { label: "Órbita", valor: "Da la vuelta al Sol en solo 88 días" },
+                    { label: "Dato curioso", valor: "No tiene lunas ni anillos" }
+                ]
+            },
+            {
+                englishName: "Venus",
+                color: "#e8cda0",
+                pistas: [
+                    { label: "Color", valor: "Amarillo anaranjado, cubierto de nubes de ácido" },
+                    { label: "Brillo", valor: "El objeto más brillante del cielo después del Sol y la Luna" },
+                    { label: "Temperatura", valor: "462°C en promedio — el más caliente del sistema solar" },
+                    { label: "Rotación", valor: "Gira al revés comparado con la mayoría de planetas" },
+                    { label: "Dato curioso", valor: "Un día en Venus dura más que su año" }
+                ]
+            },
+            {
+                englishName: "Earth",
+                color: "#4fa3e0",
+                pistas: [
+                    { label: "Color", valor: "Azul y verde, con nubes blancas" },
+                    { label: "Agua", valor: "El único planeta con agua líquida en su superficie" },
+                    { label: "Atmósfera", valor: "Rica en nitrógeno y oxígeno" },
+                    { label: "Luna", valor: "Tiene 1 luna natural" },
+                    { label: "Dato curioso", valor: "El único planeta conocido con vida" }
+                ]
+            },
+            {
+                englishName: "Mars",
+                color: "#c1440e",
+                pistas: [
+                    { label: "Color", valor: "Rojo oxidado por el hierro en su superficie" },
+                    { label: "Apodo", valor: "El Planeta Rojo" },
+                    { label: "Montaña", valor: "Tiene el volcán más alto del sistema solar: Olympus Mons" },
+                    { label: "Lunas", valor: "Tiene 2 lunas pequeñas: Fobos y Deimos" },
+                    { label: "Dato curioso", valor: "Un día marciano dura 24h 37min, casi igual que en la Tierra" }
+                ]
+            },
+            {
+                englishName: "Jupiter",
+                color: "#c88b3a",
+                pistas: [
+                    { label: "Color", valor: "Bandas marrones, naranjas y blancas con una gran mancha roja" },
+                    { label: "Tamaño", valor: "El planeta más grande del sistema solar" },
+                    { label: "Gran Mancha Roja", valor: "Una tormenta que lleva más de 350 años activa" },
+                    { label: "Lunas", valor: "Tiene 95 lunas conocidas, incluyendo Ganímedes (la más grande)" },
+                    { label: "Dato curioso", valor: "Es tan masivo que protege a la Tierra de asteroides" }
+                ]
+            },
+            {
+                englishName: "Saturn",
+                color: "#e4d191",
+                pistas: [
+                    { label: "Color", valor: "Amarillo dorado pálido con famosos anillos brillantes" },
+                    { label: "Anillos", valor: "El sistema de anillos más espectacular del sistema solar" },
+                    { label: "Densidad", valor: "Tan poco denso que flotaría en agua" },
+                    { label: "Lunas", valor: "Tiene 146 lunas, incluyendo Titán con atmósfera propia" },
+                    { label: "Dato curioso", valor: "Sus anillos están hechos de hielo y roca" }
+                ]
+            },
+            {
+                englishName: "Uranus",
+                color: "#7de8e8",
+                pistas: [
+                    { label: "Color", valor: "Azul verdoso pálido por el metano en su atmósfera" },
+                    { label: "Inclinación", valor: "Está tan inclinado que orbita de lado (98°)" },
+                    { label: "Temperatura", valor: "El planeta más frío: -224°C" },
+                    { label: "Lunas", valor: "28 lunas con nombres de personajes de Shakespeare" },
+                    { label: "Dato curioso", valor: "Sus polos reciben más luz solar que su ecuador" }
+                ]
+            },
+            {
+                englishName: "Neptune",
+                color: "#3f54ba",
+                pistas: [
+                    { label: "Color", valor: "Azul intenso profundo por el metano" },
+                    { label: "Viento", valor: "Los vientos más rápidos del sistema solar: 2100 km/h" },
+                    { label: "Distancia", valor: "El más lejano del Sol — tarda 165 años en orbitarlo" },
+                    { label: "Lunas", valor: "14 lunas, siendo Tritón la más famosa (orbita al revés)" },
+                    { label: "Dato curioso", valor: "Fue el primer planeta descubierto por cálculos matemáticos" }
+                ]
+            }
         ];
 
         let planetaSecreto = null;
         let intentos = 0;
+        let pistaActual = 0;
 
         function nuevaPartida() {
-            document.getElementById("juego").style.display = "none";
+            document.getElementById("inicio").style.display = "none";
+            document.getElementById("juego").style.display = "block";
             document.getElementById("msg").textContent = "";
-            document.getElementById("resultado").innerHTML = "";
+            document.getElementById("guess").value = "";
+            document.getElementById("pistas-container").innerHTML = "";
 
             planetaSecreto = planetas[Math.floor(Math.random() * planetas.length)];
             intentos = 0;
-            document.getElementById("intentos").textContent = "Intentos: 0";
-            document.getElementById("guess").value = "";
+            pistaActual = 0;
+
+            // Mostrar color del planeta desde el inicio
+            document.getElementById("bola").style.background = `radial-gradient(circle at 35% 35%, white 0%, ${planetaSecreto.color} 40%, #111 100%)`;
+
             document.getElementById("guess").disabled = false;
-            document.getElementById("juego").style.display = "block";
-            document.getElementById("guess").focus();
+            mostrarSiguientePista();
+            actualizarEstado();
+        }
+
+        function mostrarSiguientePista() {
+            if (pistaActual >= planetaSecreto.pistas.length) return;
+
+            const p = planetaSecreto.pistas[pistaActual];
+            const div = document.createElement("div");
+            div.className = "pista";
+            div.innerHTML = `<div class="pista-label">💡 Pista ${pistaActual + 1} — ${p.label}</div><div class="pista-valor">${p.valor}</div>`;
+            document.getElementById("pistas-container").appendChild(div);
+
+            setTimeout(() => div.classList.add("visible"), 50);
+            pistaActual++;
+            actualizarEstado();
+        }
+
+        function actualizarEstado() {
+            document.getElementById("intentos").textContent =
+                `Pista ${pistaActual} de ${planetaSecreto.pistas.length} — Intentos: ${intentos}`;
         }
 
         function adivinar() {
@@ -112,40 +257,23 @@
             if (!guess) return;
 
             intentos++;
-            document.getElementById("intentos").textContent = "Intentos: " + intentos;
-
             const nombre = planetaSecreto.englishName.toLowerCase();
 
             if (nombre.includes(guess) || guess.includes(nombre)) {
                 document.getElementById("msg").className = "msg ok";
-                document.getElementById("msg").textContent = " Esa es mijito, si es " + planetaSecreto.englishName + " en " + intentos + " intento(s).";
+                document.getElementById("msg").textContent = "🎉 ¡Esa es mijito! Es " + planetaSecreto.englishName + " en " + intentos + " intento(s).";
                 document.getElementById("guess").disabled = true;
-                mostrarInfo();
+                // Revelar todas las pistas al ganar
+                while (pistaActual < planetaSecreto.pistas.length) mostrarSiguientePista();
             } else {
                 document.getElementById("msg").className = "msg error";
                 document.getElementById("msg").textContent = "No manito, siga jugando...";
                 document.getElementById("guess").value = "";
+                // Mostrar siguiente pista automáticamente al fallar
+                if (pistaActual < planetaSecreto.pistas.length) mostrarSiguientePista();
             }
-        }
 
-        function mostrarInfo() {
-            const p = planetaSecreto;
-            document.getElementById("resultado").innerHTML = `
-                <div class="planet-card">
-                    <h2 class="planet-name">${p.englishName}</h2>
-                    <div class="planet-info">
-                        <div class="info-row"><span class="info-label">Tipo</span><span class="info-value">${p.bodyType}</span></div>
-                        <div class="info-row"><span class="info-label">Eje Semi-Mayor</span><span class="info-value">${p.semimajorAxis.toLocaleString()} km</span></div>
-                        <div class="info-row"><span class="info-label">Período Orbital</span><span class="info-value">${p.sideralOrbit} días</span></div>
-                        <div class="info-row"><span class="info-label">Rotación Sideral</span><span class="info-value">${p.sideralRotation} horas</span></div>
-                        <div class="info-row"><span class="info-label">Masa</span><span class="info-value">${p.mass} ×10²² kg</span></div>
-                        <div class="info-row"><span class="info-label">Densidad</span><span class="info-value">${p.density} g/cm³</span></div>
-                        <div class="info-row"><span class="info-label">Gravedad</span><span class="info-value">${p.gravity} m/s²</span></div>
-                        <div class="info-row"><span class="info-label">Temperatura</span><span class="info-value">${p.avgTemp} K</span></div>
-                        <div class="info-row"><span class="info-label">Lunas</span><span class="info-value">${p.moons.length}</span></div>
-                    </div>
-                </div>
-            `;
+            actualizarEstado();
         }
     </script>
 </body>
